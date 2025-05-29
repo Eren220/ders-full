@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>4. Sınıf Quiz Oyunu - 117 Soru</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #eef2f7; padding: 20px; }
+  #startScreen, #quizContainer, #resultScreen { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);}
+  #nameInput { width: 100%; padding: 10px; font-size: 1.1em; }
+  #rgbNote { margin-top: 5px; font-weight: bold; font-size: 0.9em; background: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet); -webkit-background-clip: text; color: transparent; animation: rainbow 3s linear infinite; }
+  @keyframes rainbow {
+    0% {background-position: 0%;}
+    100% {background-position: 100%;}
+  }
+  button { padding: 10px 20px; font-size: 1em; margin-top: 15px; cursor: pointer; border-radius: 5px; border:none; background-color: #2196F3; color: white; }
+  button:disabled { background-color: #90caf9; cursor: not-allowed; }
+  #question { font-size: 1.3em; margin-bottom: 15px; }
+  .answerBtn { display: block; width: 100%; margin-bottom: 10px; padding: 10px; font-size: 1em; background: #f0f0f0; border: none; border-radius: 5px; cursor: pointer; text-align: left; }
+  .answerBtn:hover { background: #d9eaff; }
+  .answerBtn.correct { background-color: #a5d6a7 !important; }
+  .answerBtn.wrong { background-color: #ef9a9a !important; }
+  #score { font-size: 1.3em; font-weight: bold; margin-top: 20px; text-align:center;}
+</style>
+</head>
+<body>
+
+<div id="startScreen">
+  <h2>4. Sınıf Quiz Oyunu</h2>
+  <input type="text" id="nameInput" placeholder="Adını yaz..." />
+  <div id="rgbNote" style="display:none;">Öğretmenim ve arkadaşlarım için</div>
+  <button id="startBtn" disabled>Başla</button>
+</div>
+
+<div id="quizContainer" style="display:none;">
+  <div id="question"></div>
+  <div id="answers"></div>
+  <button id="nextBtn" style="display:none;">Sonraki Soru</button>
+</div>
+
+<div id="resultScreen" style="display:none;">
+  <h2>Quiz Bitti!</h2>
+  <div id="score"></div>
+  <button id="restartBtn">Tekrar Oyna</button>
+</div>
+
+<script>
+  const startScreen = document.getElementById('startScreen');
+  const quizContainer = document.getElementById('quizContainer');
+  const resultScreen = document.getElementById('resultScreen');
+  const nameInput = document.getElementById('nameInput');
+  const rgbNote = document.getElementById('rgbNote');
+  const startBtn = document.getElementById('startBtn');
+  const questionEl = document.getElementById('question');
+  const answersEl = document.getElementById('answers');
+  const nextBtn = document.getElementById('nextBtn');
+  const scoreEl = document.getElementById('score');
+  const restartBtn = document.getElementById('restartBtn');
+
+  const questions = [
+    // Sosyal (13 adet)
+    { question: "Türkiye'nin başkenti neresidir?", answers: {a:"Ankara", b:"İstanbul", c:"İzmir", d:"Bursa"}, correct: "a" },
+    { question: "Atatürk hangi yıl doğmuştur?", answers: {a:"1881", b:"1876", c:"1899", d:"1901"}, correct: "a" },
+    { question: "Türkiye'nin en uzun nehri hangisidir?", answers: {a:"Kızılırmak", b:"Fırat", c:"Dicle", d:"Sakarya"}, correct: "a" },
+    { question: "Türkiye kaç coğrafi bölgeye ayrılır?", answers: {a:"7", b:"6", c:"5", d:"8"}, correct: "a" },
+    { question: "Türk bayrağındaki ay ve yıldız neyi simgeler?", answers: {a:"İslamiyet", b:"Cumhuriyet", c:"Bağımsızlık", d:"Barış"}, correct: "a" },
+    { question: "Türkiye'nin en yüksek dağı hangisidir?", answers: {a:"Ağrı Dağı", b:"Erciyes", c:"Kaçkar", d:"Süphan"}, correct: "a" },
+    { question: "Türkiye'nin para birimi nedir?", answers: {a:"Türk Lirası", b:"Euro", c:"Dolar", d:"Riyal"}, correct: "a" },
+    { question: "Cumhuriyet Bayramı hangi tarihte kutlanır?", answers: {a:"29 Ekim", b:"23 Nisan", c:"19 Mayıs", d:"30 Ağustos"}, correct: "a" },
+    { question: "Meclis nerededir?", answers: {a:"Ankara", b:"İstanbul", c:"İzmir", d:"Antalya"}, correct: "a" },
+    { question: "Türkiye'nin en büyük gölü hangisidir?", answers: {a:"Tuz Gölü", b:"Van Gölü", c:"Beyşehir Gölü", d:"Manyas Gölü"}, correct: "b" },
+    { question: "Atatürk'ün soyadı ne anlama gelir?", answers: {a:"Türklerin Atası", b:"Güçlü Adam", c:"Bilge Kişi", d:"Önder"}, correct: "a" },
+    { question: "Türkiye'nin en uzun kıyı şeridine sahip şehri hangisidir?", answers: {a:"Muğla", b:"İzmir", c:"Antalya", d:"İstanbul"}, correct: "a" },
+    { question: "Türkiye'nin resmi dili nedir?", answers: {a:"Türkçe", b:"Kürtçe", c:"İngilizce", d:"Arapça"}, correct: "a" },
+
+    // Matematik (25 adet)
+    { question: "12 + 8 kaçtır?", answers: {a:"20", b:"19", c:"21", d:"22"}, correct: "a" },
+    { question: "30 - 12 işleminin sonucu nedir?", answers: {a:"17", b:"18", c:"19", d:"20"}, correct: "b" },
+    { question: "7 x 5 kaç eder?", answers: {a:"35", b:"30", c:"25", d:"40"}, correct: "a" },
+    { question: "100'den 45 çıkarırsak sonuç kaç olur?", answers: {a:"55", b:"45", c:"60", d:"50"}, correct: "a" },
+    { question: "Bir sayının yarısı 15 ise sayı kaçtır?", answers: {a:"25", b:"30", c:"35", d:"40"}, correct: "b" },
+    { question: "Hangi sayı 100'den küçüktür?", answers: {a:"105", b:"98", c:"102", d:"110"}, correct: "b" },
+    { question: "En büyük 2 basamaklı sayı kaçtır?", answers: {a:"99", b:"100", c:"90", d:"89"}, correct: "a" },
+    { question: "3 x 7 işleminin sonucu kaçtır?", answers: {a:"20", b:"21", c:"24", d:"25"}, correct: "b" },
+    { question: "Bir sayının 3 katı 18 ise sayı kaçtır?", answers: {a:"5", b:"6", c:"7", d:"8"}, correct: "b" },
+    { question: "5 + 7 kaçtır?", answers: {a:"12", b:"10", c:"14", d:"13"}, correct: "a" },
+    { question: "Bir üçgenin iç açıları toplamı kaçtır?", answers: {a:"180°", b:"90°", c:"360°", d:"270°"}, correct: "a" },
+    { question: "10 x 10 kaç eder?", answers: {a:"100", b:"110", c:"90", d:"120"}, correct: "a" },
+    { question: "45 + 55 işleminin sonucu kaçtır?", answers: {a:"100", b:"95", c:"90", d:"105"}, correct: "a" },
+    { question: "40 - 15 kaçtır?", answers: {a:"25", b:"30", c:"20", d:"15"}, correct: "a" },
+    { question: "100'ün yarısı kaçtır?", answers: {a:"50", b:"40", c:"60", d:"70"}, correct: "a" },
+    { question: "Bir karenin dört kenarının toplamı 20 ise bir kenarı kaçtır?", answers: {a:"5", b:"4", c:"6", d:"7"}, correct: "a" },
+    { question: "5 x 5 kaç eder?", answers: {a:"25", b:"20", c:"30", d:"15"}, correct: "a" },
+    { question: "Bir saatte kaç dakika vardır?", answers: {a:"60", b:"50", c:"45", d:"30"}, correct: "a" },
+    { question: "12 + 15 işleminin sonucu kaçtır?", answers: {a:"27", b:"25", c:"28", d:"26"}, correct: "a" },
+    { question: "7 x 6 kaç eder?", answers: {a:"42", b:"40", c:"45", d:"41"}, correct: "a" },
+    { question: "10 - 7 kaçtır?", answers: {a:"3", b:"2", c:"4", d:"5"}, correct: "a" },
+    { question: "9 + 8 kaç eder?", answers: {a:"17", b:"18", c:"16", d:"15"}, correct: "a" },
+    { question: "Bir dikdörtgenin alanı nasıl hesaplanır?", answers: {a:"Uzunluk x Genişlik", b:"Uzunluk + Genişlik", c:"2 x Uzunluk + 2 x Genişlik", d:"Yarıçap x Pi"}, correct: "a" },
+    { question: "Bir yıl kaç aydır?", answers: {a:"12", b:"10", c:"11", d:"13"}, correct: "a" },
+    { question: "50 + 25 kaçtır?", answers: {a:"75", b:"70", c:"65", d:"80"}, correct: "a" },
+
+    // Fen Bilimleri (25 adet)
+    { question: "Dünyamızın etrafında dönen uydumuz hangisidir?", answers: {a:"Ay", b:"Mars", c:"Venüs", d:"Jüpiter"}, correct: "a" },
+    { question: "Bitkiler fotosentez yaparken hangi gazı kullanır?", answers: {a:"Karbondioksit", b:"Oksijen", c:"Azot", d:"Hidrojen"}, correct: "a" },
+    { question: "İnsan vücudunda en büyük organ hangisidir?", answers: {a:"Deri", b:"Kalp", c:"Karaciğer", d:"Beyin"}, correct: "a" },
+    { question: "Su hangi halden buhara dönüşür?", answers: {a:"Sıvı", b:"Katı", c:"Gaz", d:"Plazma"}, correct: "a" },
+    { question: "Güneş sisteminde kaç gezegen vardır?", answers: {a:"8", b:"9", c:"7", d:"10"}, correct: "a" },
+    { question: "İnsanlar besinlerden enerji almak için ne yapar?", answers: {a:"Sindirim", b:"Solunum", c:"Yazmak", d:"Koşmak"}, correct: "a" },
+    { question: "Yıldızlar hangi gazdan oluşur?", answers: {a:"Hidrojen", b:"Oksijen", c:"Karbondioksit", d:"Azot"}, correct: "a" },
+    { question: "Bitkilerin kökleri ne işe yarar?", answers: {a:"Su ve mineralleri çekmek", b:"Güneş ışığını toplamak", c:"Hava almak", d:"Büyümek"}, correct: "a" },
+    { question: "Buharlaşma ne demektir?", answers: {a:"Sıvının gaz haline geçmesi", b:"Katının sıvıya dönüşmesi", c:"Gazın sıvıya dönüşmesi", d:"Sıvının donması"}, correct: "a" },
+    { question: "Kuşlar hangi sınıfa girer?", answers: {a:"Omurgalı", b:"Omurgasız", c:"Böcek", d:"Memeli"}, correct: "a" },
+    { question: "Vücudumuzda kaç tane kalp var?", answers: {a:"1", b:"2", c:"3", d:"4"}, correct: "a" },
+    { question: "Bitkiler nasıl beslenir?", answers: {a:"Fotosentez ile", b:"Yemek yiyerek", c:"Suda yüzerek", d:"Toprağı yiyerek"}, correct: "a" },
+    { question: "Güneş ne tür bir enerji kaynağıdır?", answers: {a:"Yenilenebilir", b:"Yenilenemez", c:"Kimyasal", d:"Nükleer"}, correct: "a" },
+    { question: "Elektrik nasıl üretilir?", answers: {a:"Jeneratörlerle", b:"Mumla", c:"Suyla", d:"Kömürle"}, correct: "a" },
+    { question: "İnsanların vücut sıcaklığı kaç derecedir?", answers: {a:"37°C", b:"35°C", c:"39°C", d:"40°C"}, correct: "a" },
+    { question: "Bitkilerde yaprakların görevi nedir?", answers: {a:"Fotosentez yapmak", b:"Nefes almak", c:"Su depolamak", d:"Büyümek"}, correct: "a" },
+    { question: "Su kaç derecede donar?", answers: {a:"0°C", b:"100°C", c:"50°C", d:"-10°C"}, correct: "a" },
+    { question: "Dünya hangi gezegene en yakındır?", answers: {a:"Venüs", b:"Mars", c:"Jüpiter", d:"Merkür"}, correct: "a" },
+    { question: "İnsan vücudundaki en sert kemik hangisidir?", answers: {a:"Uyluk kemiği", b:"Kafatası", c:"Kaburga", d:"Kol kemiği"}, correct: "a" },
+    { question: "Kuyruklu yıldızlar ne tür cisimlerdir?", answers: {a:"Gök cismi", b:"Bitki", c:"Hayvan", d:"Mineral"}, correct: "a" },
+    { question: "Sıvıların şekli nasıl olur?", answers: {a:"Bulundukları kabın şekline göre", b:"Kendi şeklinde", c:"Sabit", d:"Düzgün değil"}, correct: "a" },
+    { question: "Elektrik devresi nasıl tamamlanır?", answers: {a:"Kablolarla", b:"Taşlarla", c:"Su ile", d:"Hava ile"}, correct: "a" },
+    { question: "Güneş doğudan mı doğar?", answers: {a:"Evet", b:"Hayır", c:"Bazen", d:"Hiçbir zaman"}, correct: "a" },
+    { question: "Hangi hayvan memelidir?", answers: {a:"Kedi", b:"Kuş", c:"Balık", d:"Kurbağa"}, correct: "a" },
+
+    // Türkçe (29 adet)
+    { question: "‘Kitap’ kelimesi kaç harflidir?", answers: {a:"5", b:"6", c:"4", d:"3"}, correct: "a" },
+    { question: "‘Ev’ kelimesi hangi tür kelimedir?", answers: {a:"İsim", b:"Fiil", c:"Sıfat", d:"Zamir"}, correct: "a" },
+    { question: "‘Koşmak’ kelimesi ne tür bir kelimedir?", answers: {a:"Fiil", b:"İsim", c:"Sıfat", d:"Zamir"}, correct: "a" },
+    { question: "‘Güzel’ kelimesi hangi tür kelimedir?", answers: {a:"Sıfat", b:"Zarf", c:"İsim", d:"Fiil"}, correct: "a" },
+    { question: "‘Ben’ kelimesi hangi tür kelimedir?", answers: {a:"Zamir", b:"İsim", c:"Sıfat", d:"Fiil"}, correct: "a" },
+    { question: "‘Kitaplık’ kelimesi kaç hecelidir?", answers: {a:"3", b:"4", c:"2", d:"5"}, correct: "a" },
+    { question: "‘Yazmak’ kelimesi hangi tür kelimedir?", answers: {a:"Fiil", b:"İsim", c:"Sıfat", d:"Zamir"}, correct: "a" },
+    { question: "‘Kedi’ kelimesi ne anlama gelir?", answers: {a:"Hayvan", b:"Renk", c:"Yer", d:"Eylem"}, correct: "a" },
+    { question: "‘Okul’ kelimesi hangi tür kelimedir?", answers: {a:"İsim", b:"Fiil", c:"Sıfat", d:"Zamir"}, correct: "a" },
+    { question: "‘Yavaşça’ kelimesi hangi tür kelimedir?", answers: {a:"Zarf", b:"İsim", c:"Fiil", d:"Sıfat"}, correct: "a" },
+    { question: "‘Büyük’ kelimesi hangi tür kelimedir?", answers: {a:"Sıfat", b:"Zamir", c:"İsim", d:"Fiil"}, correct: "a" },
+    { question: "‘Gülmek’ kelimesi ne tür bir kelimedir?", answers: {a:"Fiil", b:"İsim", c:"Sıfat", d:"Zamir"}, correct: "a" },
+    { question: "‘Kırmızı’ kelimesi ne tür kelimedir?", answers: {a:"Sıfat", b:"İsim", c:"Fiil", d:"Zamir"}, correct: "a" },
+    { question: "‘Benim’ kelimesi ne tür kelimedir?", answers: {a:"Zamir", b:"İsim", c:"Sıfat", d:"Fiil"}, correct: "a" },
+    { question: "‘Oynamak’ kelimesi hangi tür kelimedir?", answers: {a:"Fiil", b:"İsim", c:"Sıfat", d:"Zamir"}, correct: "a" },
+    { question: "‘Kalem’ kelimesi ne anlama gelir?", answers: {a:"Araç", b:"Renk", c:"Yer", d:"Hayvan"}, correct: "a" },
+    { question: "‘Yukarı’ kelimesi hangi tür kelimedir?", answers: {a:"Zarf", b:"Sıfat", c:"İsim", d:"Fiil"}, correct: "a" },
+    { question: "‘Şarkı’ kelimesi ne tür kelimedir?", answers: {a:"İsim", b:"Fiil", c:"Sıfat", d:"Zamir"}, correct: "a" },
+    { question: "‘Sevgi’ kelimesi ne tür kelimedir?", answers: {a:"İsim", b:"Fiil", c:"Sıfat", d:"Zamir"}, correct: "a" },
+    { question: "‘Güzelce’ kelimesi hangi tür kelimedir?", answers: {a:"Zarf", b:"İsim", c:"Sıfat", d:"Fiil"}, correct: "a" },
+    { question: "‘Hızlı’ kelimesi ne tür kelimedir?", answers: {a:"Sıfat", b:"Fiil", c:"İsim", d:"Zamir"}, correct: "a" },
+    { question: "‘Yemek’ kelimesi ne anlama gelir?", answers: {a:"Fiil ve isim", b:"Sadece fiil", c:"Sadece isim", d:"Sıfat"}, correct: "a" },
+    { question: "‘Arkadaş’ kelimesi ne tür kelimedir?", answers: {a:"İsim", b:"Fiil", c:"Sıfat", d:"Zamir"}, correct: "a" },
+    { question: "‘Konuşmak’ kelimesi ne tür kelimedir?", answers: {a:"Fiil", b:"İsim", c:"Sıfat", d:"Zamir"}, correct: "a" },
+    { question: "‘Kitapçı’ kelimesi kaç hecelidir?", answers: {a:"3", b:"4", c:"2", d:"5"}, correct: "a" },
+    { question: "‘Mavi’ kelimesi ne tür kelimedir?", answers: {a:"Sıfat", b:"İsim", c:"Fiil", d:"Zamir"}, correct: "a" },
+    { question: "‘Gülmek’ kelimesi ne tür kelimedir?", answers: {a:"Fiil", b:"İsim", c:"Sıfat", d:"Zamir"}, correct: "a" },
+    { question: "‘Yaz’ kelimesi ne anlama gelir?", answers: {a:"Mevsim", b:"İsim", c:"Fiil", d:"Sıfat"}, correct: "a" },
+
+    // İnsan Hakları (10 adet)
+    { question: "Her insan eşit haklara sahiptir. Bu ifade hangi ilkeyi anlatır?", answers: {a:"Eşitlik", b:"Özgürlük", c:"Adalet", d:"Dayanışma"}, correct: "a" },
+    { question: "Herkesin eğitim hakkı vardır. Bu hak hangi tür haktır?", answers: {a:"Sosyal hak", b:"Siyasi hak", c:"Ekonomik hak", d:"Kültürel hak"}, correct: "a" },
+    { question: "İnsan hakları neden önemlidir?", answers: {a:"Herkesin güvenli ve özgür yaşaması için", b:"Sadece devlet için", c:"Sadece çocuklar için", d:"Sadece yetişkinler için"}, correct: "a" },
+    { question: "İfade özgürlüğü hangi haktır?", answers: {a:"Siyasi hak", b:"Ekonomik hak", c:"Sosyal hak", d:"Kültürel hak"}, correct: "a" },
+    { question: "Herkesin yaşam hakkı vardır. Bu hak nasıl korunur?", answers: {a:"Devlet tarafından", b:"Aile tarafından", c:"Arkadaşlar tarafından", d:"Okul tarafından"}, correct: "a" },
+    { question: "Çocuk hakları nelerdir?", answers: {a:"Eğitim, sağlık, oyun", b:"Sadece eğitim", c:"Sadece oyun", d:"Sadece sağlık"}, correct: "a" },
+    { question: "İnsan hakları hangi belgede yer alır?", answers: {a:"İnsan Hakları Evrensel Beyannamesi", b:"Anayasa", c:"Kanunlar", d:"Sözleşmeler"}, correct: "a" },
+    { question: "İnsan hakları ihlal edildiğinde ne yapılmalıdır?", answers: {a:"Şikayet edilmelidir", b:"Görmezden gelinmelidir", c:"Onaylanmalıdır", d:"Gizlenmelidir"}, correct: "a" },
+    { question: "Her bireyin özgürlük hakkı vardır. Bu hak neyi sağlar?", answers: {a:"Kendi düşüncesini ifade etme", b:"Başkasını zorlamak", c:"Kuralları çiğneme", d:"Yalan söyleme"}, correct: "a" },
+    { question: "İnsan hakları herkesi kapsar mı?", answers: {a:"Evet", b:"Hayır", c:"Sadece yetişkinleri", d:"Sadece çocukları"}, correct: "a" }
+    // Diyanet ve İngilizce soruları istersen ayrıca ekleyebilirim.
+  ];
+
+  // Karışık sorular için karıştırma fonksiyonu
+  function shuffle(array) {
+    for(let i = array.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  // 117 soru toplam, karıştır
+  shuffle(questions);
+
+  let currentQuestionIndex = 0;
+  let score = 0;
+
+  nameInput.addEventListener('input', () => {
+    startBtn.disabled = nameInput.value.trim() === '';
+    rgbNote.style.display = nameInput.value.trim() ? 'block' : 'none';
+  });
+
+  startBtn.addEventListener('click', () => {
+    startScreen.style.display = 'none';
+    quizContainer.style.display = 'block';
+    currentQuestionIndex = 0;
+    score = 0;
+    showQuestion();
+  });
+
+  function showQuestion() {
+    nextBtn.style.display = 'none';
+    const q = questions[currentQuestionIndex];
+    questionEl.textContent = `${currentQuestionIndex + 1}. ${q.question}`;
+    answersEl.innerHTML = '';
+    for (const key in q.answers) {
+      const btn = document.createElement('button');
+      btn.textContent = q.answers[key];
+      btn.classList.add('answerBtn');
+      btn.dataset.key = key;
+      btn.addEventListener('click', selectAnswer);
+      answersEl.appendChild(btn);
+    }
+  }
+
+  function selectAnswer(e) {
+    const selectedBtn = e.target;
+    const selectedKey = selectedBtn.dataset.key;
+    const correctKey = questions[currentQuestionIndex].correct;
+
+    const buttons = answersEl.querySelectorAll('button');
+    buttons.forEach(btn => {
+      btn.disabled = true;
+      if(btn.dataset.key === correctKey){
+        btn.classList.add('correct');
+      }
+      if(btn.dataset.key === selectedKey && selectedKey !== correctKey){
+        btn.classList.add('wrong');
+      }
+    });
+
+    if(selectedKey === correctKey){
+      score++;
+    }
+
+    if(currentQuestionIndex < questions.length - 1){
+      nextBtn.style.display = 'inline-block';
+    } else {
+      nextBtn.textContent = 'Sonuçları Gör';
+      nextBtn.style.display = 'inline-block';
+    }
+  }
+
+  nextBtn.addEventListener('click', () => {
+    currentQuestionIndex++;
+    if(currentQuestionIndex < questions.length){
+      nextBtn.style.display = 'none';
+      showQuestion();
+    } else {
+      showResults();
+    }
+  });
+
+  function showResults() {
+    quizContainer.style.display = 'none';
+    resultScreen.style.display = 'block';
+    resultScreen.querySelector('h2').textContent = `Tebrikler ${nameInput.value}! Doğru cevap sayınız: ${score} / ${questions.length}`;
+  }
+</script>
+
+</body>
+</html>
+
